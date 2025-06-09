@@ -1,0 +1,99 @@
+// import { OrbitControls } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
+import type { GpsCoord, OrientationType } from "../common/gps.i";
+import BoxObject from "./BoxObject";
+import * as THREE from "three";
+import CameraFeed from "./CameraFeed";
+import { useControls } from "leva";
+import CustomCamera from "./CustomCamera";
+interface IAreaProps {
+  origin: GpsCoord;
+  compass: OrientationType;
+  manualRotate: boolean;
+}
+
+const Area = (props: IAreaProps) => {
+  const { cameraPosition, cameraRotation } = useControls({
+    cameraPosition: {
+      value: {
+        x: 0,
+        y: 1,
+        z: 0
+      },
+      x: {
+        step: 0.1,
+        min: -10,
+        max: 10
+      },
+      y: {
+        step: 0.1,
+        min: -10,
+        max: 10
+      },
+      z: {
+        step: 0.1,
+        min: -10,
+        max: 10
+      }
+    },
+    cameraRotation: {
+      value: {
+        x: 0,
+        y: 0,
+        z: 0
+      },
+      x: {
+        step: 0.05,
+        min: 0,
+        max: Math.PI
+      },
+      y: {
+        step: 0.05,
+        min: 0,
+        max: Math.PI
+      },
+      z: {
+        step: 0.05,
+        min: 0,
+        max: Math.PI
+      }
+    }
+  });
+
+  return (
+    <>
+      <CameraFeed />
+      <Canvas>
+        <ambientLight intensity={0.1} />
+        <CustomCamera
+          cameraPosition={cameraPosition as THREE.Vector3}
+          cameraRotation={cameraRotation as THREE.Vector3}
+          manualRotate={props.manualRotate}
+          compass={props.compass}
+        />
+        <BoxObject
+          name="player"
+          cameraPosition={cameraPosition as THREE.Vector3}
+          origin={props.origin}
+          position={props.origin}
+          color={"white"}
+        />
+        <BoxObject
+          name="obj1"
+          cameraPosition={cameraPosition as THREE.Vector3}
+          origin={props.origin}
+          position={{ latitude: 13.68536, longitude: 100.467035282 }}
+          color={"red"}
+        />
+        <mesh position={[0, -0.5, 0]}>
+          <planeGeometry args={[5, 0.1, 5]} />
+          <meshStandardMaterial color="white" />
+        </mesh>
+        <directionalLight position={[1, 1, 1]} color="white" />
+        {/* {props.manualRotate && <OrbitControls />} */}
+      </Canvas>
+    </>
+  );
+};
+
+export default Area;
