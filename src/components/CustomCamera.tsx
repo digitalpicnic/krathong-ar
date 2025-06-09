@@ -19,13 +19,13 @@ const CustomCamera = (props: ICustomCamera) => {
 
   const updateCameraRotation = (orientation: OrientationType) => {
     const alpha = orientation.alpha ?? 0; // z-axis (compass)
-    const beta = orientation.beta ?? 0; // x-axis (tilt front-back)
-    const gamma = orientation.gamma ?? 0; // y-axis (tilt left-right)
+    // const beta = orientation.beta ?? 0; // x-axis (tilt front-back)
+    // const gamma = orientation.gamma ?? 0; // y-axis (tilt left-right)
 
     // Convert to radians
     const _alpha = THREE.MathUtils.degToRad(360 - alpha);
-    const _beta = THREE.MathUtils.degToRad(beta);
-    const _gamma = THREE.MathUtils.degToRad(gamma);
+    // const _beta = THREE.MathUtils.degToRad(beta);
+    // const _gamma = THREE.MathUtils.degToRad(gamma);
 
     // Construct Euler and Quaternion
     const euler = new THREE.Euler(0, _alpha, 0, "XYZ");
