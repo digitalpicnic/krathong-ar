@@ -185,7 +185,10 @@ const Area = (props: IAreaProps) => {
         <BoxObject
           name="obj1"
           cameraPosition={cameraControls.position as THREE.Vector3}
-          position={new THREE.Vector3(0, 0, 5)}
+          position={originPosition(props.origin, {
+            latitude: props.origin.latitude + 0.0001,
+            longitude: props.origin.longitude + 0.0001
+          })}
           color={"red"}
         />
         <mesh position={[0, -0.5, 0]}>
