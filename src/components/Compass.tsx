@@ -125,12 +125,14 @@ const Compass = () => {
   }, [geoCoords]);
 
   useEffect(() => {
+    console.log(diffCoords);
+
     setPlayerGPS({
       moveLat: diffCoords.latitude.toPrecision(),
       moveLong: diffCoords.longitude.toPrecision(),
       moveAl: diffCoords.altitude?.toPrecision() || "0",
-      x: diffCoords.latitude * 111.132,
-      z: diffCoords.longitude * 111.32 * Math.cos((oriCoords.latitude * Math.PI) / 180)
+      x: diffCoords.latitude * 1110000.132,
+      z: diffCoords.longitude * 1110000.32 * Math.cos((oriCoords.latitude * Math.PI) / 180)
     });
   }, [diffCoords]);
 
@@ -139,17 +141,14 @@ const Compass = () => {
       <div className="absolute top-0 left-0 h-full w-full">
         <Area origin={geoCoords} />
       </div>
-      <div className="absolute top-0 left-0 z-10 h-auto w-full">
+      {/* <div className="absolute top-0 left-0 z-10 h-auto w-full">
         <div>Diff Latitude:{diffCoords?.latitude * 17717.04722222}</div>
         <div>Diff Longitude:{diffCoords?.longitude * 17717.04722222}</div>
         <div>Latitude:{geoCoords?.latitude}</div>
         <div>Longitude:{geoCoords?.longitude}</div>
         <div>Altitude:{geoCoords?.altitude}</div>
         <div>Accuracy: {coords?.accuracy}</div>
-        {/* <button onClick={() => setManualRotate(!manualRotate)}>
-          {manualRotate ? "Manual" : "Compass"}
-        </button> */}
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -68,7 +68,7 @@ export const deg2rad = (degree: number, invert: boolean = false): number => {
 
 export const originPosition = (origin: GpsCoord, position: GpsCoord): THREE.Vector3 => {
   const [x, z] = gpsToXY(origin.latitude, origin.longitude, position.latitude, position.longitude);
-  const newPosition = new THREE.Vector3(x / 10, position.altitude, z / 10);
+  const newPosition = new THREE.Vector3(x, position.altitude, z);
   return newPosition;
 };
 

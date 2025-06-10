@@ -5,7 +5,7 @@ import BoxObject from "./BoxObject";
 import * as THREE from "three";
 // import CameraFeed from "./CameraFeed";
 import { folder, useControls } from "leva";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import DeviceOrientationCamera from "./DeviceOrientationCamera";
 import useDeviceOrientation from "../utils/useDeviceOrientation";
 import { originPosition } from "../utils/utils";
@@ -31,14 +31,14 @@ const Area = (props: IAreaProps) => {
   //#endregion
 
   const [cameraOrientation, setOrientation] = useState<OrientationType>(orientation);
-
+  const positionRef = useRef(new THREE.Vector3());
   const cameraControls = useControls("Camera Control", {
     transform: folder({
       position: {
         value: {
           x: 0,
           y: 0,
-          z: 5
+          z: 0
         },
         x: {
           step: 0.1,
@@ -136,7 +136,7 @@ const Area = (props: IAreaProps) => {
         screenOrientation: orientation.screenOrientation || 0
       });
     }
-  }, [cameraControls.position, orientation]);
+  }, [orientation]);
 
   useEffect(() => {
     if (!(isPermissionGranted && isSupported)) {
@@ -148,6 +148,13 @@ const Area = (props: IAreaProps) => {
       });
     }
   }, [cameraOrientation]);
+
+  useEffect(() => {}, [props.origin]);
+  useEffect(() => {
+    if (positionRef.current) {
+      positionRef.current = cameraControls.position as THREE.Vector3;
+    }
+  }, [cameraControls]);
 
   return (
     <>
@@ -169,27 +176,29 @@ const Area = (props: IAreaProps) => {
           orientation={orientation}
           isPermissionGranted={isPermissionGranted}
           isSupported={isSupported}
-          position={cameraControls.position as THREE.Vector3}
+          position={positionRef.current as THREE.Vector3}
         />
-        <axesHelper />
         {/* <mesh position={[0, 0, -5]}>
           <boxGeometry args={[1, 1, 1]} />
           <meshStandardMaterial color="white" />
         </mesh> */}
-        <BoxObject
+        {/* <BoxObject
           name="player"
           cameraPosition={cameraControls.position as THREE.Vector3}
           position={originPosition(props.origin, props.origin)}
           color={"white"}
-        />
+        /> */}
         <BoxObject
           name="obj1"
-          cameraPosition={cameraControls.position as THREE.Vector3}
-          position={originPosition(props.origin, {
-            latitude: props.origin.latitude + 0.0001,
-            longitude: props.origin.longitude + 0.0001
-          })}
-          color={"red"}
+          cameraPosition={positionRef.current as THREE.Vector3}
+          position={
+            // new THREE.Vector3(5, 0, -10)
+            originPosition(props.origin, {
+              latitude: props.origin.latitude + 0.0001,
+              longitude: props.origin.longitude + 0.0001
+            })
+          }
+          color={"yellow"}
         />
         <mesh position={[0, -0.5, 0]}>
           <planeGeometry args={[5, 0.1, 5]} />
