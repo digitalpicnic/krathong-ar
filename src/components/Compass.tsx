@@ -3,6 +3,7 @@ import { useGeolocated } from "react-geolocated";
 import {
   callDeviceOrientationEventPermission,
   checkHTTPSProtocol,
+  isIOS,
   type DeviceOrientationEventIOS
 } from "../utils/utils";
 import Area from "./Area";
@@ -24,7 +25,8 @@ const Compass = () => {
   const handelGetCoords = (position: GeolocationCoordinates) => {
     setGeoCoords({
       latitude: position.latitude,
-      longitude: position.longitude
+      longitude: position.longitude,
+      altitude: position.altitude || 0
     });
     if (oriCoords.latitude == 0) {
       setOriCoords({
@@ -58,34 +60,7 @@ const Compass = () => {
   };
 
   const [compass, setCompass] = useState<OrientationType>({ alpha: 0, beta: 0, gamma: 0 });
-  const [manualRotate, setManualRotate] = useState<boolean>(true);
-
-  // const locationHandler = (coords: GeolocationCoordinates) => {
-  //   const { latitude, longitude } = coords;
-  //   const resP = calcDegreeToPoint(latitude, longitude);
-  //   console.log("resP", resP);
-  // };
-
-  // const calcDegreeToPoint = (latitude: number, longitude: number) => {
-  //   // Qibla geolocation
-  //   const point = {
-  //     lat: 21.422487,
-  //     lng: 39.826206
-  //   };
-
-  //   const phiK = (point.lat * Math.PI) / 180.0;
-  //   const lambdaK = (point.lng * Math.PI) / 180.0;
-  //   const phi = (latitude * Math.PI) / 180.0;
-  //   const lambda = (longitude * Math.PI) / 180.0;
-  //   const psi =
-  //     (180.0 / Math.PI) *
-  //     Math.atan2(
-  //       Math.sin(lambdaK - lambda),
-  //       Math.cos(phi) * Math.tan(phiK) -
-  //         Math.sin(phi) * Math.cos(lambdaK - lambda)
-  //     );
-  //   return Math.round(psi);
-  // };
+  // const [manualRotate, setManualRotate] = useState<boolean>(false);
 
   useEffect(() => {
     console.log(coords);
@@ -96,30 +71,12 @@ const Compass = () => {
     isGeolocationEnabled;
   }, [coords, isGeolocationAvailable, isGeolocationEnabled]);
 
-  // useEffect(() => {
-  //   navigator.geolocation.watchPosition(handelGetCoords, null, {
-  //     enableHighAccuracy: true,
-  //     maximumAge: 30000,
-  //     timeout: 1000
-  //   });
-  //   return () => {
-  //     window.removeEventListener("deviceorientation", deviceOrientationHandler);
-  //     window.removeEventListener("deviceorientationabsolute", deviceOrientationHandler);
-  //   };
-  // }, []);
-
   useEffect(() => {
     setDiffCoords({
       latitude: geoCoords.latitude - oriCoords.latitude,
       longitude: geoCoords.longitude - oriCoords.longitude
     });
   }, [geoCoords]);
-
-  const isIOS = () => {
-    return (
-      navigator.userAgent.match(/(iPod|iPhone|iPad)/) && navigator.userAgent.match(/AppleWebKit/)
-    );
-  };
 
   const deviceOrientationHandler = (e: DeviceOrientationEventIOS | DeviceOrientationEvent) => {
     if (e != null) {
@@ -144,32 +101,32 @@ const Compass = () => {
       setCompass(compass);
     }
   };
+
   return (
     <div className="h-screen w-screen">
       <div className="absolute top-0 left-0 h-full w-full">
         <Area
           origin={{ latitude: geoCoords?.latitude || 0, longitude: geoCoords?.longitude || 0 }}
           compass={compass}
-          manualRotate={manualRotate}
+          manualRotate={false}
         />
       </div>
       <div className="absolute top-0 left-0 z-50 h-auto w-full">
-        <div>Ori Latitude:{oriCoords?.latitude}</div>
-        <div>Ori Longitude:{oriCoords?.longitude}</div>
-        <div>Diff Latitude:{diffCoords?.latitude / 0.00005644}</div>
-        <div>Diff Longitude:{diffCoords?.longitude / 0.00005644}</div>
+        <div>Diff Latitude:{diffCoords?.latitude * 17717.04722222}</div>
+        <div>Diff Longitude:{diffCoords?.longitude * 17717.04722222}</div>
         <div>Latitude:{geoCoords?.latitude}</div>
         <div>Longitude:{geoCoords?.longitude}</div>
+        <div>Altitude:{geoCoords?.altitude}</div>
         <div>Accuracy: {coords?.accuracy}</div>
-        <div>X degree:{compass?.beta}</div>
-        <div>Y degree:{compass?.alpha}</div>
-        <div>Z degree:{compass?.gamma}</div>
+        <div>X degree:{compass?.beta.toFixed(2)}</div>
+        <div>Y degree:{compass?.alpha.toFixed(2)}</div>
+        <div>Z degree:{compass?.gamma.toFixed(2)}</div>
         <button className="" onClick={getPermission}>
           Get Permission
         </button>
-        <button onClick={() => setManualRotate(!manualRotate)}>
+        {/* <button onClick={() => setManualRotate(!manualRotate)}>
           {manualRotate ? "Manual" : "Compass"}
-        </button>
+        </button> */}
       </div>
     </div>
   );

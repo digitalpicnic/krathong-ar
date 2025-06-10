@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import type { GpsCoord } from "../common/gps.i";
 
 export interface DeviceOrientationEventIOS extends DeviceOrientationEvent {
   requestPermission?: () => Promise<"granted" | "denied">;
@@ -64,3 +65,42 @@ export const deg2rad = (degree: number, invert: boolean = false): number => {
   }
   return (Math.PI / 360) * degree;
 };
+
+export const originPosition = (origin: GpsCoord, position: GpsCoord): THREE.Vector3 => {
+  const [x, z] = gpsToXY(origin.latitude, origin.longitude, position.latitude, position.longitude);
+  const newPosition = new THREE.Vector3(x / 10, position.altitude, z / 10);
+  return newPosition;
+};
+
+export function getCameraQuaternion(
+  alpha: number,
+  beta: number,
+  gamma: number,
+  screenOrientation: number
+) {
+  const degToRad = Math.PI / 180;
+
+  const euler = new THREE.Euler();
+  const finalQuaternion = new THREE.Quaternion();
+  const screenTransform = new THREE.Quaternion();
+  const worldTransform = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5)); // rotate -90° around X
+
+  // Convert to radians
+  const alphaRad = alpha * degToRad;
+  const betaRad = beta * degToRad;
+  const gammaRad = gamma * degToRad;
+  const orientRad = screenOrientation * degToRad;
+
+  // Construct device orientation quaternion
+  euler.set(betaRad, alphaRad, -gammaRad, "YXZ");
+  finalQuaternion.setFromEuler(euler);
+
+  // Apply world transform
+  finalQuaternion.multiply(worldTransform);
+
+  // Apply screen orientation
+  screenTransform.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -orientRad);
+  finalQuaternion.multiply(screenTransform);
+
+  return finalQuaternion;
+}

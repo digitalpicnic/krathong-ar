@@ -1,6 +1,7 @@
 export interface GpsCoord {
   latitude: number;
   longitude: number;
+  altitude?: number;
 }
 
 export interface OrientationType {
@@ -8,4 +9,5 @@ export interface OrientationType {
   alpha: number;
   beta: number;
   gamma: number;
+  screenOrientation?: number;
 }

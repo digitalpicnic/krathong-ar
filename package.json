@@ -1,5 +1,6 @@
 {
   "name": "krathong-ar",
+  "homepage": "https://digitalpicnic.github.io/krathong-ar/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,11 +10,14 @@
     "preview": "vite preview",
     "server": "vite --host",
     "lint": "eslint src --ext .ts,.tsx",
-    "lint:fix": "eslint src --ext .ts,.tsx --fix"
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@react-three/drei": "^10.1.2",
     "@react-three/fiber": "^9.1.2",
+    "gh-pages": "^6.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-geolocated": "^4.3.0",
