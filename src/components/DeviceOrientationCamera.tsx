@@ -1,55 +1,19 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import * as THREE from "three";
 import type { OrientationType } from "../common/gps.i";
+import { mobileAndTabletCheck } from "../utils/useDeviceOrientation";
 
-export default function DeviceOrientationCamera() {
+interface IDeviceOrientationCameraProps {
+  orientation: OrientationType;
+  isPermissionGranted: boolean;
+  isSupported: boolean;
+  position: THREE.Vector3;
+}
+
+const DeviceOrientationCamera = (props: IDeviceOrientationCameraProps) => {
   const { camera } = useThree();
   const cameraRef = useRef(camera);
-  const [permission, setPermission] = useState(false);
-  const [orientation, setOrientation] = useState<OrientationType>({
-    alpha: 0,
-    beta: 0,
-    gamma: 0,
-    screenOrientation: 0
-  });
-
-  useEffect(() => {
-    requestPermission();
-
-    return () => {
-      window.removeEventListener("deviceorientation", handleOrientation);
-      window.removeEventListener("orientationchange", handleOrientationChange);
-    };
-  }, []);
-
-  const requestPermission = async () => {
-    if (
-      typeof DeviceOrientationEvent !== "undefined" &&
-      typeof DeviceOrientationEvent.requestPermission === "function"
-    ) {
-      const permission = await DeviceOrientationEvent.requestPermission();
-      if (permission === "granted") {
-        window.addEventListener("deviceorientation", handleOrientation, true);
-        window.addEventListener("orientationchange", handleOrientationChange);
-        setPermission(true);
-      }
-    } else {
-      // Android หรือเก่ากว่า
-      window.addEventListener("deviceorientation", handleOrientation, true);
-      window.addEventListener("orientationchange", handleOrientationChange);
-      setPermission(true);
-    }
-  };
-
-  const handleOrientationChange = () => {
-    orientation.screenOrientation = window.orientation || 0;
-  };
-
-  const handleOrientation = (event: DeviceOrientationEvent) => {
-    const { alpha = 0, beta = 0, gamma = 0 } = event;
-    setOrientation({ alpha: alpha || 0, beta: beta || 0, gamma: gamma || 0 });
-  };
 
   const setObjectQuaternion = (
     quaternion: THREE.Quaternion,
@@ -72,7 +36,14 @@ export default function DeviceOrientationCamera() {
   };
 
   useFrame(() => {
-    if (!permission || !cameraRef.current) return;
+    updatePosition();
+    updateRotation();
+  });
+
+  const updateRotation = () => {
+    const { isSupported, isPermissionGranted, orientation } = props;
+    if (mobileAndTabletCheck())
+      if (!isSupported || !isPermissionGranted || !cameraRef.current) return;
 
     const { alpha, beta, gamma, screenOrientation } = orientation;
 
@@ -85,7 +56,15 @@ export default function DeviceOrientationCamera() {
     setObjectQuaternion(quaternion, alphaRad, betaRad, gammaRad, orientRad);
 
     cameraRef.current.quaternion.copy(quaternion);
-  });
+  };
+
+  const updatePosition = () => {
+    if (cameraRef.current) {
+      cameraRef.current.position.copy(props.position);
+    }
+  };
 
   return null;
-}
+};
+
+export default DeviceOrientationCamera;

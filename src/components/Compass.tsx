@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import { useGeolocated } from "react-geolocated";
-import {
-  callDeviceOrientationEventPermission,
-  checkHTTPSProtocol,
-  isIOS,
-  type DeviceOrientationEventIOS
-} from "../utils/utils";
 import Area from "./Area";
-import type { GpsCoord, OrientationType } from "../common/gps.i";
+import type { GpsCoord } from "../common/gps.i";
+import { folder, useControls } from "leva";
 const Compass = () => {
   const { coords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({
     positionOptions: {
@@ -17,12 +12,89 @@ const Compass = () => {
     watchPosition: true
   });
 
-  const [geoCoords, setGeoCoords] = useState<GpsCoord>({ latitude: 0, longitude: 0 });
+  const [, setGPS] = useControls(
+    () => ({
+      GPS: folder({
+        device: folder({
+          geolocationAvailable: {
+            value: false,
+            disabled: true
+          },
+          geolocationEnabled: {
+            value: false,
+            disabled: true
+          },
+          latitude: {
+            value: "",
+            disabled: true
+          },
+          longitude: {
+            value: "",
+            disabled: true
+          },
+          altitude: {
+            value: "",
+            disabled: true
+          },
+          accuracy: {
+            value: "",
+            min: 0,
+            max: 100,
+            disabled: true
+          }
+        })
+      })
+    }),
+    []
+  );
 
+  const [, setPlayerGPS] = useControls(
+    () => ({
+      GPS: folder({
+        player: folder({
+          coords: folder({
+            moveLat: {
+              value: "0",
+              disabled: true
+            },
+            moveLong: {
+              value: "0",
+              disabled: true
+            },
+            moveAl: {
+              value: "0",
+              disabled: true
+            }
+          }),
+          position: folder({
+            x: {
+              value: 0,
+              disabled: true
+            },
+            z: {
+              value: 0,
+              disabled: true
+            }
+          })
+        })
+      })
+    }),
+    []
+  );
+
+  const [geoCoords, setGeoCoords] = useState<GpsCoord>({ latitude: 0, longitude: 0 });
   const [oriCoords, setOriCoords] = useState<GpsCoord>({ latitude: 0, longitude: 0 });
   const [diffCoords, setDiffCoords] = useState<GpsCoord>({ latitude: 0, longitude: 0 });
 
   const handelGetCoords = (position: GeolocationCoordinates) => {
+    setGPS({
+      geolocationAvailable: isGeolocationAvailable,
+      geolocationEnabled: isGeolocationEnabled,
+      latitude: position.latitude.toPrecision(),
+      longitude: position.longitude.toPrecision(),
+      altitude: position?.altitude?.toPrecision() || "0",
+      accuracy: position.accuracy.toPrecision()
+    });
     setGeoCoords({
       latitude: position.latitude,
       longitude: position.longitude,
@@ -36,94 +108,44 @@ const Compass = () => {
     }
   };
 
-  const getPermission = async () => {
-    console.log("click");
-
-    if (checkHTTPSProtocol()) {
-      const result = await callDeviceOrientationEventPermission();
-
-      if (result) {
-        const checkIos = isIOS();
-        if (checkIos) {
-          // IOS 13+
-          window.addEventListener("deviceorientation", deviceOrientationHandler, true);
-        } else {
-          // Android or IOS < 13
-          window.addEventListener("deviceorientationabsolute", deviceOrientationHandler, true);
-        }
-      } else {
-        alert("has to be allowed!");
-      }
-    } else {
-      alert("DeviceMotionEvent is not defined");
-    }
-  };
-
-  const [compass, setCompass] = useState<OrientationType>({ alpha: 0, beta: 0, gamma: 0 });
-  // const [manualRotate, setManualRotate] = useState<boolean>(false);
-
   useEffect(() => {
-    console.log(coords);
     if (coords) handelGetCoords(coords);
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isGeolocationAvailable;
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isGeolocationEnabled;
   }, [coords, isGeolocationAvailable, isGeolocationEnabled]);
 
   useEffect(() => {
+    let altitude = 0;
+    if (geoCoords.altitude && oriCoords.altitude) {
+      altitude = geoCoords?.altitude - oriCoords?.altitude;
+    }
     setDiffCoords({
       latitude: geoCoords.latitude - oriCoords.latitude,
-      longitude: geoCoords.longitude - oriCoords.longitude
+      longitude: geoCoords.longitude - oriCoords.longitude,
+      altitude: altitude
     });
   }, [geoCoords]);
 
-  const deviceOrientationHandler = (e: DeviceOrientationEventIOS | DeviceOrientationEvent) => {
-    if (e != null) {
-      const compass: OrientationType = {
-        alpha: 0,
-        beta: 0,
-        gamma: 0
-      };
-      if (isIOS()) {
-        if ((e as DeviceOrientationEventIOS).webkitCompassHeading) {
-          compass.alpha = (e as DeviceOrientationEventIOS).webkitCompassHeading;
-          compass.beta = e.beta || 0;
-          compass.gamma = e.gamma || 0;
-        }
-      } else {
-        if (e.alpha) {
-          compass.alpha = Math.abs(e.alpha - 360);
-          compass.beta = e.beta || 0;
-          compass.gamma = e.gamma || 0;
-        }
-      }
-      setCompass(compass);
-    }
-  };
+  useEffect(() => {
+    setPlayerGPS({
+      moveLat: diffCoords.latitude.toPrecision(),
+      moveLong: diffCoords.longitude.toPrecision(),
+      moveAl: diffCoords.altitude?.toPrecision() || "0",
+      x: diffCoords.latitude * 111.132,
+      z: diffCoords.longitude * 111.32 * Math.cos((oriCoords.latitude * Math.PI) / 180)
+    });
+  }, [diffCoords]);
 
   return (
     <div className="h-screen w-screen">
       <div className="absolute top-0 left-0 h-full w-full">
-        <Area
-          origin={{ latitude: geoCoords?.latitude || 0, longitude: geoCoords?.longitude || 0 }}
-          compass={compass}
-          manualRotate={false}
-        />
+        <Area origin={geoCoords} />
       </div>
-      <div className="absolute top-0 left-0 z-50 h-auto w-full">
+      <div className="absolute top-0 left-0 z-10 h-auto w-full">
         <div>Diff Latitude:{diffCoords?.latitude * 17717.04722222}</div>
         <div>Diff Longitude:{diffCoords?.longitude * 17717.04722222}</div>
         <div>Latitude:{geoCoords?.latitude}</div>
         <div>Longitude:{geoCoords?.longitude}</div>
         <div>Altitude:{geoCoords?.altitude}</div>
         <div>Accuracy: {coords?.accuracy}</div>
-        <div>X degree:{compass?.beta.toFixed(2)}</div>
-        <div>Y degree:{compass?.alpha.toFixed(2)}</div>
-        <div>Z degree:{compass?.gamma.toFixed(2)}</div>
-        <button className="" onClick={getPermission}>
-          Get Permission
-        </button>
         {/* <button onClick={() => setManualRotate(!manualRotate)}>
           {manualRotate ? "Manual" : "Compass"}
         </button> */}

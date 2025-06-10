@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-dp-green: #30A691;
+  --color-dp-green: #30a691;
   --color-dp-gray: #252525;
   --color-dp-light-gray: #767576;
   --color-dp-light-gray-secondary: #383838;
-  --color-dp-dark-gray: #2C2C2C;
-  --color-dp-red: #CF6679;
-  --color-dp-dark-red: #F74B52;
-  --color-dp-blue: #3C7BBD;
-  --color-dp-orange: #EABB8F;
-  --color-dp-brown: #B59192;
-  --color-dp-purple: #BB86FC;
-  --color-dp-light-green: #DAF3F1;
-  --color-dp-light-blue: #DFEBF7;
-  --color-dp-light-brown: #F3E1E2;
-  --color-dp-light-black: #2E2E2E;
+  --color-dp-dark-gray: #2c2c2c;
+  --color-dp-red: #cf6679;
+  --color-dp-dark-red: #f74b52;
+  --color-dp-blue: #3c7bbd;
+  --color-dp-orange: #eabb8f;
+  --color-dp-brown: #b59192;
+  --color-dp-purple: #bb86fc;
+  --color-dp-light-green: #daf3f1;
+  --color-dp-light-blue: #dfebf7;
+  --color-dp-light-brown: #f3e1e2;
+  --color-dp-light-black: #2e2e2e;
   --color-dp-black: #121212;
   --color-dp-white: #e5e4e5;
 }
@@ -87,4 +87,8 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+#leva__root > * {
+  scale: 80%;
 }
