@@ -42,7 +42,8 @@ const BoxObject = (props: IBoxObjectProps) => {
     }
     if (textRef.current) {
       // console.log(position);
-      textRef.current.lookAt(lookAtCamera());
+      const dir = new THREE.Vector3().copy(props.cameraPosition);
+      textRef.current.lookAt(dir);
       // console.log(props.cameraPosition);
     }
   });

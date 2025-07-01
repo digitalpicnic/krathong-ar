@@ -1,6 +1,6 @@
 // import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import type { GpsCoord, OrientationType } from "../common/gps.i";
+import type { OrientationType } from "../common/gps.i";
 import BoxObject from "./BoxObject";
 import * as THREE from "three";
 // import CameraFeed from "./CameraFeed";
@@ -9,11 +9,11 @@ import { useEffect, useRef, useState } from "react";
 import DeviceOrientationCamera from "./DeviceOrientationCamera";
 import useDeviceOrientation from "../utils/useDeviceOrientation";
 import { originPosition } from "../utils/utils";
-interface IAreaProps {
-  origin: GpsCoord;
-}
+import { useGpsContext } from "../context/GpsContext";
 
-const Area = (props: IAreaProps) => {
+const Area = () => {
+  const { origin, playerPosition } = useGpsContext();
+
   //#region Orientation
   const { orientation, requestPermission, isPermissionGranted, isSupported } =
     useDeviceOrientation();
@@ -149,12 +149,17 @@ const Area = (props: IAreaProps) => {
     }
   }, [cameraOrientation]);
 
-  useEffect(() => {}, [props.origin]);
+  // useEffect(() => {
+  //   console.log(playerPosition);
+  // }, [playerPosition]);
+
   useEffect(() => {
     if (positionRef.current) {
-      positionRef.current = cameraControls.position as THREE.Vector3;
+      const newPosition = new THREE.Vector3().copy(cameraControls.position as THREE.Vector3);
+      newPosition.add(new THREE.Vector3(playerPosition.x, 0, playerPosition.z));
+      positionRef.current = newPosition;
     }
-  }, [cameraControls]);
+  }, [cameraControls, playerPosition]);
 
   return (
     <>
@@ -193,9 +198,9 @@ const Area = (props: IAreaProps) => {
           cameraPosition={positionRef.current as THREE.Vector3}
           position={
             // new THREE.Vector3(5, 0, -10)
-            originPosition(props.origin, {
-              latitude: props.origin.latitude + 0.0001,
-              longitude: props.origin.longitude + 0.0001
+            originPosition(origin, {
+              latitude: origin.latitude + 0.00001,
+              longitude: origin.longitude + 0.00001
             })
           }
           color={"yellow"}
